@@ -42,7 +42,7 @@
 ### Analysis
 **Python**
 
-## Hypothesis testing:
+**Hypothesis testing**
 
 
 ### Insights
