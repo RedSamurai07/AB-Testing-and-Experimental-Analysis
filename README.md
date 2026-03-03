@@ -390,6 +390,15 @@ main(df)
 ```
 <img width="593" height="638" alt="image" src="https://github.com/user-attachments/assets/1e854da0-c490-472b-8129-08c672ab544b" /><img width="587" height="706" alt="image" src="https://github.com/user-attachments/assets/135d9689-741f-4ab8-86c9-9e12f0e473f5" /><img width="581" height="164" alt="image" src="https://github.com/user-attachments/assets/f3d24341-c69e-49de-bb15-5cbdd28c62fc" />
 
+**SQL**
+For sql database I had downloaded it as `cleaned_data.csv` on VS code.
+``` python
+df.drop(columns = ['con_treat','page'],inplace = True)
+ouput = df.to_csv('cleaned_data.csv', index=False)
+```
+
+
+
 ### Insights
 
 - No SRM Found: With a Chi-square p-value of 0.8908, we confirmed that the distribution of 145,381 (Treatment) vs. 145,307 (Control) users was statistically sound.
