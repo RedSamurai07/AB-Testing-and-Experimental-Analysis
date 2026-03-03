@@ -397,7 +397,260 @@ df.drop(columns = ['con_treat','page'],inplace = True)
 ouput = df.to_csv('cleaned_data.csv', index=False)
 ```
 
+1). Sample Ratio Mismatch (SRM) Detection:
+``` sql
+WITH group_counts AS (
+    SELECT
+        group_clean,
+        COUNT(DISTINCT id) AS n_users
+    FROM `test.ab`
+    GROUP BY group_clean
+),
+totals AS (
+    SELECT SUM(n_users) AS total_users FROM group_counts
+),
+srm_check AS (
+    SELECT
+        g.group_clean,
+        g.n_users                                          AS actual_count,
+        t.total_users / 2.0                                AS expected_count,
+        ROUND(g.n_users * 100.0 / t.total_users, 2)       AS actual_pct,
+        ABS(g.n_users - t.total_users / 2.0) /
+            SQRT(t.total_users / 4.0)                      AS z_stat   -- approx chi-squared contribution
+    FROM group_counts g
+    CROSS JOIN totals t
+)
+SELECT
+    *,
+    CASE WHEN ABS(z_stat) > 3.0
+         THEN 'SRM DETECTED — do not trust results'
+         ELSE 'No SRM — randomization looks clean'
+    END AS srm_verdict
+FROM srm_check;
+```
+<img width="1192" height="211" alt="image" src="https://github.com/user-attachments/assets/a509bf48-f997-4294-a21f-238e1eac3218" />
 
+2). Core Conversion Rate Analysis with Confidence Intervals
+``` sql
+WITH base AS (
+    SELECT
+        group_clean,
+        COUNT(DISTINCT id)            AS n,
+        SUM(converted)                     AS conversions,
+        AVG(converted)                     AS conversion_rate,
+        STDDEV(CAST(converted AS NUMERIC)) AS std_dev  
+    FROM `test.ab`
+    GROUP BY group_clean
+),
+stats AS (
+    SELECT
+        group_clean,
+        n,
+        conversions,
+        ROUND(conversion_rate, 5)                                   AS conv_rate,
+        -- Wilson CI: p̂ ± z * sqrt(p̂(1-p̂)/n) / (1 + z²/n)
+        ROUND(conversion_rate - 1.96 * SQRT(conversion_rate*(1-conversion_rate)/n), 5)  AS ci_lower,
+        ROUND(conversion_rate + 1.96 * SQRT(conversion_rate*(1-conversion_rate)/n), 5)  AS ci_upper
+    FROM base
+)
+SELECT
+    s.*,
+    t.conv_rate - c.conv_rate                              AS absolute_lift,
+    ROUND((t.conv_rate - c.conv_rate) / c.conv_rate, 5)   AS relative_lift
+FROM stats s
+CROSS JOIN (SELECT conv_rate FROM stats WHERE group_clean = 'control')   c
+CROSS JOIN (SELECT conv_rate FROM stats WHERE group_clean = 'treatment') t;
+```
+<img width="1452" height="216" alt="image" src="https://github.com/user-attachments/assets/5a86f4de-f232-49c8-ab8b-507685d9de4f" />
+
+3). Success Rate Analysis
+``` sql
+SELECT
+    group_clean,
+    COUNT(DISTINCT id) AS total_users,
+    SUM(converted) AS total_conversions,
+    -- Calculate the conversion rate
+    ROUND(SUM(converted) * 100.0 / COUNT(DISTINCT id), 2) AS conversion_rate_pct
+FROM `test.ab`
+GROUP BY group_clean
+ORDER BY group_clean;
+```
+<img width="785" height="204" alt="image" src="https://github.com/user-attachments/assets/7f49c7fd-d3fc-438f-80e7-b6732ad676a9" />
+
+4). Segmented Conversion Lift & Significance Report
+
+``` sql
+WITH segment_stats AS (
+    SELECT
+        country,  -- Swapped from 'device' to match your data
+        group_clean,
+        COUNT(DISTINCT id) AS n, -- Swapped from 'user_id' to 'id'
+        SUM(converted)     AS conversions,
+        AVG(converted)     AS conv_rate
+    FROM `test.ab`
+    WHERE country IS NOT NULL
+    GROUP BY country, group_clean
+),
+pivoted AS (
+    SELECT
+        country,
+        MAX(CASE WHEN group_clean = 'control'   THEN n END)         AS n_control,
+        MAX(CASE WHEN group_clean = 'treatment' THEN n END)         AS n_treatment,
+        MAX(CASE WHEN group_clean = 'control'   THEN conv_rate END) AS ctrl_conv_rate,
+        MAX(CASE WHEN group_clean = 'treatment' THEN conv_rate END) AS treat_conv_rate
+    FROM segment_stats
+    GROUP BY country
+)
+SELECT
+    country,
+    n_control,
+    n_treatment,
+    ROUND(ctrl_conv_rate, 4)                                       AS ctrl_rate,
+    ROUND(treat_conv_rate, 4)                                      AS treat_rate,
+    ROUND(treat_conv_rate - ctrl_conv_rate, 4)                     AS absolute_lift,
+    ROUND((treat_conv_rate - ctrl_conv_rate) / 
+           NULLIF(ctrl_conv_rate, 0), 4)                           AS relative_lift,
+    -- Statistical Significance check (Z-test at 95% confidence)
+    CASE 
+        WHEN n_control > 0 AND n_treatment > 0 AND
+             ABS(treat_conv_rate - ctrl_conv_rate) / 
+             NULLIF(SQRT(
+                (ctrl_conv_rate * (1 - ctrl_conv_rate) / n_control) + 
+                (treat_conv_rate * (1 - treat_conv_rate) / n_treatment)
+             ), 0) > 1.96 
+        THEN 'Significant'
+        ELSE 'Not significant'
+    END AS significance
+FROM pivoted
+ORDER BY absolute_lift DESC;
+```
+<img width="1380" height="251" alt="image" src="https://github.com/user-attachments/assets/438d5b9c-df1a-48b7-9476-e0d985e0bb8f" />
+
+5).A/B Test Time-Series Trend & Rolling Conversion Analysis
+``` sql
+WITH daily AS (
+    SELECT
+        group_clean,
+        CAST(SPLIT(time, ' ')[OFFSET(0)] AS INT64) AS experiment_day,
+        COUNT(DISTINCT id)                         AS daily_users,
+        SUM(converted)                             AS daily_conversions,
+        AVG(converted)                             AS daily_conv_rate
+    FROM `test.ab`
+    GROUP BY group_clean, experiment_day
+)
+SELECT
+    d.*,
+    -- 3-day rolling average to smooth noise
+    AVG(d.daily_conv_rate) OVER (
+        PARTITION BY d.group_clean
+        ORDER BY d.experiment_day
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS rolling_3d_conv_rate
+FROM daily d
+ORDER BY d.group_clean, d.experiment_day;
+```
+<img width="1120" height="215" alt="image" src="https://github.com/user-attachments/assets/c987446c-71ea-4224-a415-45d382a949e9" />
+
+6). A/B Test Cumulative Conversion & Stability Analysis
+
+``` sql
+WITH ordered AS (
+    SELECT
+        id,
+        group_clean,
+        converted,
+        time,
+        -- Using the time string to rank users by the order they entered the test
+        ROW_NUMBER() OVER (PARTITION BY group_clean ORDER BY time) AS user_rank
+    FROM `test.ab`
+),
+
+cumulative AS (
+    SELECT
+        group_clean,
+        user_rank AS cumulative_users,
+        -- Running sum of conversions as each user is added
+        SUM(converted) OVER (
+            PARTITION BY group_clean 
+            ORDER BY user_rank 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS running_conversions,
+        -- Running average (Conversion Rate) as each user is added
+        AVG(CAST(converted AS FLOAT64)) OVER (
+            PARTITION BY group_clean 
+            ORDER BY user_rank 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS running_conv_rate
+    FROM ordered
+)
+
+SELECT 
+    group_clean,
+    cumulative_users,
+    running_conversions,
+    ROUND(running_conv_rate, 4) AS running_conv_rate
+FROM cumulative
+-- Sampling every 500 users to make the dataset manageable for visualization
+WHERE MOD(cumulative_users, 500) = 0 
+ORDER BY group_clean, cumulative_users;
+```
+<img width="785" height="479" alt="image" src="https://github.com/user-attachments/assets/004acb69-90cf-4087-91d2-438d3e74d068" />
+
+7).Country-Level Subgroup Analysis with Bonferroni Correction
+``` sql
+WITH country_stats AS (
+    SELECT
+        country,
+        group_clean,
+        COUNT(DISTINCT id)  AS n,
+        SUM(converted)           AS conversions,
+        AVG(converted)           AS conv_rate
+    FROM `test.ab`
+    WHERE country IS NOT NULL
+    GROUP BY country, group_clean
+    HAVING COUNT(DISTINCT id) >= 100  -- Minimum sample for reliable inference
+),
+pivoted AS (
+    SELECT
+        country,
+        MAX(CASE WHEN group_clean='control'   THEN n END)        AS n_ctrl,
+        MAX(CASE WHEN group_clean='treatment' THEN n END)        AS n_treat,
+        MAX(CASE WHEN group_clean='control'   THEN conv_rate END) AS ctrl_rate,
+        MAX(CASE WHEN group_clean='treatment' THEN conv_rate END) AS treat_rate
+    FROM country_stats
+    GROUP BY country
+),
+with_zstats AS (
+    SELECT
+        *,
+        (treat_rate - ctrl_rate) /
+            SQRT(
+                treat_rate*(1-treat_rate)/n_treat +
+                ctrl_rate*(1-ctrl_rate)/n_ctrl
+            )  AS z_stat,
+        COUNT(*) OVER ()  AS n_countries
+    FROM pivoted
+)
+SELECT
+    country,
+    n_ctrl,
+    n_treat,
+    ROUND(ctrl_rate,  4) AS ctrl_rate,
+    ROUND(treat_rate, 4) AS treat_rate,
+    ROUND(treat_rate - ctrl_rate, 4) AS abs_lift,
+    ROUND(z_stat, 3) AS z_stat,
+    -- Bonferroni corrected threshold: reject if |z| > z(alpha/2/n_countries)
+    -- For 4 countries: alpha_adj = 0.05/4 = 0.0125, z_threshold ≈ 2.50
+    CASE WHEN ABS(z_stat) > 2.50
+         THEN 'Significant (Bonferroni corrected)'
+         WHEN ABS(z_stat) > 1.96
+         THEN 'Nominally significant (not Bonferroni)'
+         ELSE 'Not significant'
+    END AS bonferroni_verdict
+FROM with_zstats
+ORDER BY ABS(z_stat) DESC;
+```
+<img width="1396" height="248" alt="image" src="https://github.com/user-attachments/assets/e586766f-f9d1-4644-acbd-e7dacf644714" />
 
 ### Insights
 
