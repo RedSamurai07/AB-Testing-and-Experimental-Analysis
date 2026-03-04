@@ -38,25 +38,6 @@ This project utilizes a robust Python-based experimentation engine to evaluate a
 ### Data structure and initial checks
 [Dataset](https://www.kaggle.com/datasets/ahmedmohameddawoud/ecommerce-ab-testing)
 
- - The initial checks of your dataset reveal the following:
-
-1). A/B Test Results (ab_test.csv)
-
-| Features | Description | Data types |
-| -------- | -------- | -------- | 
-| user_id | Unique identifier for each user who participated in the test. | int64 | 
-| time | The specific time and date when the user visited the website. | object | 
-| con_treat | The group the user was assigned to: control or treatment | object | 
-| page | The version of the page shown to the user: old_page or new_page. | object | 
-| converted | Binary flag (0 or 1) indicating if the user purchased the product as 0 (No) and 1 (Yes) | int64 | 
-
-2. User Geography (countries.csv)
-
-| Features | Description | Data types |
-| -------- | -------- | -------- | 
-| id | Unique identifier for the user (links to the main table) | int64 | 
-| country | The user's country of residence (typically US, UK, or CA) | object | 
-
 ### Tools
 - Excel : Google Sheets - Check for data types, Table formatting
 - SQL : Big QueryStudio - Querying, manipulating, and managing data in relational databases in 
