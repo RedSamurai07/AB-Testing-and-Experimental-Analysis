@@ -652,6 +652,11 @@ ORDER BY ABS(z_stat) DESC;
 ```
 <img width="1396" height="248" alt="image" src="https://github.com/user-attachments/assets/e586766f-f9d1-4644-acbd-e7dacf644714" />
 
+
+**Tableau**
+
+<img width="1520" height="927" alt="image" src="https://github.com/user-attachments/assets/06e70eca-c088-45ea-9151-11e4d1164122" />
+
 ### Insights
 
 - No SRM Found: With a Chi-square p-value of 0.8908, we confirmed that the distribution of 145,381 (Treatment) vs. 145,307 (Control) users was statistically sound.
