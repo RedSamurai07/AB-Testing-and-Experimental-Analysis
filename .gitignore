@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+test-results.xml
+.env
+venv/
+env/
+ssh_keys/
+*.pem
+cleaned_data.csv
