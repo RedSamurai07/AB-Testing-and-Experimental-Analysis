@@ -1,6 +1,6 @@
 # AB Testing and Experimental Analysis
 
-![CI Pipeline](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
+![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
 
 
 ## Table of contents
