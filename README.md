@@ -1,6 +1,6 @@
 # AB Testing and Experimental Analysis
 
-![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
+![CI Pipeline](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
 
 
 ## Table of contents
@@ -45,7 +45,15 @@ This project utilizes a robust Python-based experimentation engine to evaluate a
 - Excel : Google Sheets - Check for data types, Table formatting
 - SQL : Big QueryStudio - Querying, manipulating, and managing data in relational databases in 
 - Python: VS code/ Google Colab - Data Preparation and pre-processing, Exploratory Data Analysis, Descriptive Statistics, inferential Statistics, Data manipulation and Analysis(Numpy, Pandas),Visualization (Matplotlib, Seaborn), Feature Engineering, Hypothesis Testing
-  
+- Model Deployment: Docker, EC2, MLflow
+- CI/CD: GitHub Actions
+- Version Control: Git
+- Containerization: Docker
+- Infrastructure: AWS EC2
+- Model Management: MLflow
+- Testing: PyTest
+- Documentation: Markdown
+
 ### Analysis
 **Python**
 Importing all the necessary libraries
