@@ -1,50 +1,58 @@
-# AWS Deployment Guide
+# EC2 Deployment Guide
 
-This guide details how to deploy the AB Testing Analysis Service to AWS using Docker and AWS App Runner (for simplicity) or ECS.
+This guide details how to deploy the AB Testing Analysis Service directly on an AWS EC2 instance using Docker.
 
-## Prerequisites
-- AWS CLI installed and configured.
-- Docker installed locally.
+## Step 1: Launch and Setup EC2
 
-## Step 1: Push Image to ECR
+1. Launch a **t2.micro** (or larger) instance with **Ubuntu 22.04 LTS**.
+2. In **Security Groups**, allow:
+   - SSH (Port 22)
+   - FastAPI (Port 8000)
+   - MLflow UI (Port 5000)
+3. Connect to your instance via SSH.
 
-1. **Create ECR Repository:**
-   ```bash
-   aws ecr create-repository --repository-name ab-testing-api
-   ```
-
-2. **Login to ECR:**
-   ```bash
-   aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.<region>.amazonaws.com
-   ```
-
-3. **Build and Tag:**
-   ```bash
-   docker build -t ab-testing-api .
-   docker tag ab-testing-api:latest <aws_account_id>.dkr.ecr.<region>.amazonaws.com/ab-testing-api:latest
-   ```
-
-4. **Push:**
-   ```bash
-   docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/ab-testing-api:latest
-   ```
-
-## Step 2: Deploy to AWS App Runner
-
-1. Go to the **App Runner Console**.
-2. Create **App Runner Service**.
-3. Source: **Container Registry**.
-4. Image Repository: Select your ECR repo and the `latest` tag.
-5. Deployment Settings: **Automatic**.
-6. Configuration:
-   - Port: `8000`
-   - Runtime: `Python` (Managed by Docker)
-7. Create & Deploy.
-
-## Step 3: Deployment Verification
-
-Once App Runner provides a URL (e.g., `https://xxxx.region.awsapprunner.com`), test it:
+## Step 2: Install Docker on EC2
 
 ```bash
-curl https://xxxx.region.awsapprunner.com/health
+sudo apt-get update
+sudo apt-get install -y docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+# Log out and log back in for group changes to take effect
 ```
+
+## Step 3: Deploy the Service
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis.git
+   cd AB-Testing-and-Experimental-Analysis
+   ```
+
+2. **Build and Run the Container:**
+   ```bash
+   # Build the image
+   docker build -t ab-analysis-api .
+
+   # Start the container
+   # We map port 8000 for the API and port 5000 for MLflow
+   docker run -d -p 8000:8000 -p 5000:5000 --name ab-service ab-analysis-api
+   ```
+
+## Step 4: Verification
+
+Test the API from your local machine:
+
+```bash
+# Replace <EC2_PUBLIC_IP> with your instance's IP
+curl http://<EC2_PUBLIC_IP>:8000/health
+```
+
+### Checking results in MLflow
+Open your browser and navigate to:
+`http://<EC2_PUBLIC_IP>:5000`
+
+## CI Status
+The build status of the main branch is tracked via GitHub Actions.
+![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
