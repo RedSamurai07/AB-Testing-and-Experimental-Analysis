@@ -1,4 +1,7 @@
-# A/B Testing & Experimentation Analysis
+# AB Testing and Experimental Analysis
+
+![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
+
 
 ## Table of contents
 - [Project Overview](#project-overview)
