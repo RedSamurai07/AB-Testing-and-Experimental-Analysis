@@ -21,8 +21,7 @@ jobs:
         pip install -r requirements.txt
     - name: Run tests
       run: |
-        export PYTHONPATH=$GITHUB_WORKSPACE
-        python3 -m pytest tests/test_analyzer.py --junitxml=test-results.xml
+        python3 -m pytest
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v2

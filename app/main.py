@@ -17,6 +17,10 @@ class AnalysisRequest(BaseModel):
     treatment_users: int
     experiment_name: str = "default_experiment"
 
+@app.get("/")
+def read_root():
+    return {"message": "A/B Testing Analysis API is running. Use /analyze for POST requests."}
+
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
