@@ -10,6 +10,22 @@ This guide details how to deploy the AB Testing Analysis Service directly on an 
    - FastAPI (Port 8000)
    - MLflow UI (Port 5000)
 3. Connect to your instance via SSH.
+   
+   **On Windows (PowerShell):**
+   ```powershell
+   # Set permissions (Windows equivalent of chmod 400)
+   icacls "ab_test-key.pem" /inheritance:r
+   icacls "ab_test-key.pem" /grant:r "${env:USERNAME}:R"
+   
+   # Connect
+   ssh -i "ab_test-key.pem" ubuntu@<EC2_PUBLIC_IP>
+   ```
+
+   **On Linux/Mac:**
+   ```bash
+   chmod 400 ab_test-key.pem
+   ssh -i "ab_test-key.pem" ubuntu@<EC2_PUBLIC_IP>
+   ```
 
 ## Step 2: Install Docker on EC2
 
