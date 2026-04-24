@@ -7,3 +7,4 @@ statsmodels
 mlflow
 pytest
 httpx
+streamlit
