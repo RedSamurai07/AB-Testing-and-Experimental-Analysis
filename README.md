@@ -2,7 +2,7 @@
 
 ![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
 
-[Live Link](https://redsamurai07-ab-testing-and-experimental-analysis-app-0yc9dh.streamlit.app/)
+**[Live Link](https://redsamurai07-ab-testing-and-experimental-analysis-app-0yc9dh.streamlit.app/)**
 
 ## Table of contents
 - [Project Overview](#project-overview)
