@@ -17,6 +17,16 @@
 ### Project Overview
 This project utilizes a robust Python-based experimentation engine to evaluate a UI/UX redesign of a global web platform. Unlike standard A/B tests, this framework incorporates Sequential Analysis to mitigate the risks of "p-hacking" and Bayesian Posteriors to provide business stakeholders with intuitive probability-based outcomes. The pipeline integrates user-level demographic data with conversion logs to detect granular performance variances across international markets.
 
+## 🛠️ Production Architecture & MLOps
+To demonstrate production readiness, this A/B testing framework is fully productized and automated:
+
+* **Containerization:** Packaged with Docker for seamless replication across local and cloud environments.
+* **Cloud Deployment:** Hosted on an AWS EC2 instance running a FastAPI backend microservice.
+* **Experiment Tracking:** Integrated with an MLflow artifact registry to log statistical parameters and live test variations.
+* **CI/CD Pipeline:** Automated via GitHub Actions to execute statistical unit tests on every code push.
+
+👉 **For the complete step-by-step technical setup, Dockerfiles, and cloud infrastructure configurations, read the full [Production Deployment Guide](DEPLOYMENT.md).**
+
 ### Executive Summary
 
 - Final Verdict: DO NOT SHIP.
