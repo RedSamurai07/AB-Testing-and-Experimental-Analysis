@@ -3,3 +3,7 @@ pydantic
 mlflow
 pytest
 pytest-cov
+statsmodels
+scipy
+numpy
+httpx
