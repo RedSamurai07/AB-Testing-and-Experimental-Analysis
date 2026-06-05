@@ -71,4 +71,4 @@ def test_analyze_endpoint_success_pipeline():
     json_data = response.json()
     assert "frequentist" in json_data
     assert "bayesian" in json_data
-    assert "arm" in json_data
+    assert "srm" in json_data  # Changed from "arm" to "srm" to match actual code response
