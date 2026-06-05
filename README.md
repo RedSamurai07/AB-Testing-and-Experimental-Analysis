@@ -21,6 +21,34 @@
 ### Project Overview
 This project utilizes a robust Python-based experimentation engine to evaluate a UI/UX redesign of a global web platform. Unlike standard A/B tests, this framework incorporates Sequential Analysis to mitigate the risks of "p-hacking" and Bayesian Posteriors to provide business stakeholders with intuitive probability-based outcomes. The pipeline integrates user-level demographic data with conversion logs to detect granular performance variances across international markets.
 
+## Project Architecture
+
+```mermaid
+graph LR
+    subgraph Development [1. Data & Modeling]
+        A[ab_test.csv & coutries.csv Data] --> B[Hypothesis Testing & Statsmodels]
+        B --> C[Machine Learning / Deep Learning Models]
+    end
+
+    subgraph Tracking [2. Experimentation]
+        C --> D((MLflow Tracking))
+    end
+
+    subgraph DevOps [3. CI/CD & Containers]
+        D --> E[GitHub Actions CI/CD]
+        E --> F[Docker Containerization]
+    end
+
+    subgraph Deployment [4. Production]
+        F --> G[AWS Cloud Deployment]
+    end
+
+    style D fill:#012A4A,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#2671E5,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#0db7ed,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+```
+
 ### Production Architecture
 To demonstrate production readiness, this A/B testing framework is fully productized and automated:
 
@@ -30,6 +58,7 @@ To demonstrate production readiness, this A/B testing framework is fully product
 * **CI/CD Pipeline:** Automated via GitHub Actions to execute statistical unit tests on every code push.
 
 👉 **For the complete step-by-step technical setup, Dockerfiles, and cloud infrastructure configurations, read the full [Production Deployment Guide](DEPLOYMENT.md).**
+
 
 ### Executive Summary
 
@@ -57,7 +86,8 @@ To demonstrate production readiness, this A/B testing framework is fully product
 Dataset: Proprietary operational data (anonymized for privacy compliance).
 
 ### Tools
-- Excel : Google Sheets - Check for data types, Table formatting
+- Excel : Google Sheets - Check for data types, Table formatting.
+- Tableau: Visualization
 - SQL : Big QueryStudio - Querying, manipulating, and managing data in relational databases in 
 - Python: VS code/ Google Colab - Data Preparation and pre-processing, Exploratory Data Analysis, Descriptive Statistics, inferential Statistics, Data manipulation and Analysis(Numpy, Pandas),Visualization (Matplotlib, Seaborn), Feature Engineering, Hypothesis Testing
 - Model Deployment: Docker, EC2, MLflow
