@@ -77,7 +77,6 @@ Core Rationale: Variant conversions are structurally flat/negative (p = 0.2394)
                 while triggering an explicit automated novelty warning. Multiple 
                 testing corrections successfully neutralized false positive metrics.
 ============================================================
-```
 
 ## 6. Data Cleanup & Repository Footprint
 
