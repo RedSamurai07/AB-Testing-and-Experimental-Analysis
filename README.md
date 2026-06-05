@@ -2,6 +2,8 @@
 
 ![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
 
+[![codecov](https://codecov.io/gh/RedSamurai07/AB-Testing-and-Experimental-Analysis/branch/main/graph/badge.svg)](https://codecov.io/gh/RedSamurai07/AB-Testing-and-Experimental-Analysis)
+
 **[Live Link](https://redsamurai07-ab-testing-and-experimental-analysis-app-0yc9dh.streamlit.app/)**
 
 ## Table of contents
