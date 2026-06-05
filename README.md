@@ -6,6 +6,7 @@
 
 ## Table of contents
 - [Project Overview](#project-overview)
+- [Production Architecture & ML Ops](#production-architecture)
 - [Executive Summary](#executive-summary)
 - [Goal](goal)
 - [Data Structure](data-structure)
@@ -14,8 +15,19 @@
 - [Insights](insights)
 - [Recommendations](recommendations)
 
+  
 ### Project Overview
 This project utilizes a robust Python-based experimentation engine to evaluate a UI/UX redesign of a global web platform. Unlike standard A/B tests, this framework incorporates Sequential Analysis to mitigate the risks of "p-hacking" and Bayesian Posteriors to provide business stakeholders with intuitive probability-based outcomes. The pipeline integrates user-level demographic data with conversion logs to detect granular performance variances across international markets.
+
+### Production Architecture
+To demonstrate production readiness, this A/B testing framework is fully productized and automated:
+
+* **Containerization:** Packaged with Docker for seamless replication across local and cloud environments.
+* **Cloud Deployment:** Hosted on an AWS EC2 instance running a FastAPI backend microservice.
+* **Experiment Tracking:** Integrated with an MLflow artifact registry to log statistical parameters and live test variations.
+* **CI/CD Pipeline:** Automated via GitHub Actions to execute statistical unit tests on every code push.
+
+👉 **For the complete step-by-step technical setup, Dockerfiles, and cloud infrastructure configurations, read the full [Production Deployment Guide](DEPLOYMENT.md).**
 
 ### Executive Summary
 
@@ -40,7 +52,7 @@ This project utilizes a robust Python-based experimentation engine to evaluate a
 - Risk Mitigation: Employed O'Brien-Fleming sequential boundaries to allow for early stopping if the treatment showed severe negative regression, protecting user experience during the experiment.
 
 ### Data structure and initial checks
-[Dataset](https://www.kaggle.com/datasets/ahmedmohameddawoud/ecommerce-ab-testing)
+Dataset: Proprietary operational data (anonymized for privacy compliance).
 
 ### Tools
 - Excel : Google Sheets - Check for data types, Table formatting
@@ -649,34 +661,6 @@ ORDER BY ABS(z_stat) DESC;
 **Tableau Dashboard** 
 
 <img width="1520" height="927" alt="image" src="https://github.com/user-attachments/assets/06e70eca-c088-45ea-9151-11e4d1164122" />
-
-
-Model Deployment Guide:
-
-Stage 1: Setting Up Your Local Environment
-Begin your journey by establishing a development workspace on your computer before anything goes online. Get Python & Pip: Obtain the most recent 3.x release from python.org and confirm installation by entering python --version in your command line. Get Git: Acquire Git and register for a GitHub account, then execute git config --global user.name "Your Name" to connect your system to your profile. Get Docker Desktop: This critical software lets you bundle your application to ensure consistent behavior across your laptop and production servers. While setting this up, register for Docker Hub—it will serve as your "Container Repository."
-
-Stage 2: Organizing Your Workspace (Code & Dependencies)
-Structure your machine learning application properly. Build a Project Directory: Execute mkdir my-ml-app && cd my-ml-app. Configure a Virtual Environment: Execute python -m venv venv and activate using source venv/bin/activate (Mac) or .\venv\Scripts\activate (Windows).
-Purpose? This prevents conflicts between ML frameworks (such as Scikit-Learn or PyTorch) across different projects. Generate a requirements.txt: Document your dependencies here (examples: pandas, scikit-learn, flask). Deploy them via pip install -r requirements.txt. Prior to this, capture package versions by running pip list in your terminal.
-
-Stage 3: Packaging for Distribution (Containerization & Repository)
-Your code is ready; now package it for transport. Develop a Dockerfile: This script instructs Docker to fetch Python, transfer your codebase, install dependencies, and launch the model. Construct your Image: Execute docker build -t my-ml-model. Upload to Repository: Authenticate with Docker Hub through your terminal (docker login) and upload your image for cloud accessibility: docker push username/my-ml-model. Important: Within the Dockerfile, verify Python tags at hub.docker.com/_/python for containerization compatibility.
-
-tage 4: Production Launch & Workflow Automation
-Manual deployment is outdated; professionals employ automation to synchronize the production application with the source code. Cloud Infrastructure: Select a platform (such as GCP or AWS) to host your model permanently online. CI/CD Framework: Implement GitHub Actions to automate the build and deployment workflow. Each code commit to GitHub triggers automatic cloud updates. Basic Monitoring: Leverage your provider's native tools to track server performance and resource consumption.
-
-Stage 5: Cloud Infrastructure & Continuous Integration (Deployment & CI/CD)
-This stage brings your project into production. Cloud Platform Account (AWS/GCP/Azure): Choose one provider. Newcomers often find Google Cloud (GCP) or DigitalOcean more user-friendly than AWS. CI/CD (GitHub Actions): First, create a test.py file for model validation and metric visualization on MLflow.
-
-Establish a directory in your project: .github/workflows/ and within it:
-Include a .yml configuration that triggers: "Upon each GitHub code push, reconstruct my Docker image and deploy to the cloud."
-Monitoring: After the model runs on cloud infrastructure, utilize the provider's dashboard (like AWS CloudWatch) to detect errors or excessive CPU consumption.
-
-Stage 5: Performance Monitoring (Prometheus & Grafana):
-The final verification layer.
-1). Prometheus: Collects metrics from your deployed model (traffic volume, crash reports).
-2). Grafana: Interfaces with Prometheus to display dynamic, visual dashboards of your model's performance.
 
 ### Insights
 
