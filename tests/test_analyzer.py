@@ -12,7 +12,7 @@ from app.main import app
 # Initialize the clean FastAPI TestClient wrapper
 client = TestClient(app)
 
-# 2. Core ABAnalyzer Logic Tests (100% Analyzer Coverage)
+# 2. Core ABAnalyzer Logic Tests
 def test_z_test_significant():
     results = ABAnalyzer.run_z_test(100, 1000, 150, 1000)
     assert results["significant"] is True
@@ -34,7 +34,7 @@ def test_srm_not_detected():
     results = ABAnalyzer.check_srm(1000, 1005)
     assert results["srm_detected"] is False
 
-# 3. Core FastAPI Endpoint Tests (Sweeps app/main.py through 100%)
+# 3. Core FastAPI Endpoint Tests
 def test_read_root_endpoint():
     response = client.get("/")
     assert response.status_code == 200
@@ -71,4 +71,4 @@ def test_analyze_endpoint_success_pipeline():
     json_data = response.json()
     assert "frequentist" in json_data
     assert "bayesian" in json_data
-    assert "srm" in json_data  # Changed from "arm" to "srm" to match actual code response
+    assert "srm" in json_data
