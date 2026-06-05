@@ -45,25 +45,27 @@ The framework processes the experimental data through a multi-layered statistica
 Running the framework on the experimental dataset yielded the following core telemetry:
 
 ## Experiment Summary
+# ## Experiment Summary
 
 | Phase / Framework Gate | Experiment Metrics & Audited Findings |
 | :--- | :--- |
 | **DATA QUALITY AUDIT** | ⚠ **Users in multiple groups:** 1,895. Removing...<br>**SRM p-value:** 0.8908 \| ✓ No SRM<br><br>**Final Group Distribution:**<br>• `control`: 145,307<br>• `treatment`: 145,381 |
-| &nbsp; | |
+| --- | --- |
 | **EXPERIMENT DESIGN** | • **Required N per group:** 4,433<br>• **Alpha:** 0.05<br>• **Power:** 0.8 |
-| &nbsp; | |
+| --- | --- |
 | **FREQUENTIST ANALYSIS** | • `control` \| conv_rate: **0.120345** \| n: 145,307<br>• `treatment` \| conv_rate: **0.118929** \| n: 145,381<br><br>**P-value:** 0.239407 \| ✗ Not Significant |
-| &nbsp; | |
+| --- | --- |
 | **BAYESIAN ANALYSIS** | • **P(Treatment > Control):** 12.23% |
-| &nbsp; | |
+| --- | --- |
 | **SEQUENTIAL ANALYSIS** | • **Look at 25%:** \|Z\|=1.76, Boundary=3.92 ➔ *Continue*<br>• **Look at 50%:** \|Z\|=1.79, Boundary=2.77 ➔ *Continue*<br>• **Look at 75%:** \|Z\|=1.01, Boundary=2.26 ➔ *Continue*<br>• **Look at 100%:** \|Z\|=1.18, Boundary=1.96 ➔ *Continue* |
-| &nbsp; | |
+| --- | --- |
 | **MULTIPLE TESTING** | • **Raw p-values:** `[0.042, 0.015, 0.08]`<br>• **Corrected (BH-FDR):** `[0.063, 0.045, 0.08]` |
-| &nbsp; | |
+| --- | --- |
 | **HTE (BY COUNTRY)** | • **Country: US** \| Lift: -0.0019<br>• **Country: CA** \| Lift: -0.0074<br>• **Country: UK** \| Lift: +0.0013 |
-| &nbsp; | |
+| --- | --- |
 | **NOVELTY EFFECT** | • **Early Lift:** -0.0030 \| **Late Lift:** 0.0002<br>⚠ **Warning:** Novelty effect suspected. |
 
+---
 
 ## 5. Final Automated Recommendation
 
