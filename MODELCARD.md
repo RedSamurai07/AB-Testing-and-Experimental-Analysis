@@ -215,7 +215,31 @@ SRM:                    None detected
 - **One-Sided Novelty Risk:** While novelty effect analysis showed stabilisation, a longer experiment duration (8–10 weeks) is recommended to fully rule out lingering change-aversion dynamics.
 - **Data Contamination:** 0 contaminated user IDs (users assigned to both groups) were removed. In higher-traffic experiments, contamination rates above 1% should trigger a full re-randomisation review.
 
-## 13. Final Decision Summary
+---
+
+## 13. Infrastructure & Tools
+
+| Category | Tool |
+|---|---|
+| Language | Python 3.10 |
+| Statistical Testing | SciPy (proportions_ztest, chisquare), Statsmodels (NormalIndPower, multipletests) |
+| Bayesian Analysis | SciPy Beta distribution (Monte Carlo sampling, 100K samples) |
+| API Framework | FastAPI + Uvicorn |
+| Frontend | Streamlit |
+| Experiment Tracking | MLflow |
+| Data Processing | Pandas, NumPy |
+| Visualisation | Matplotlib, Seaborn |
+| SQL Engine | Google BigQuery |
+| Testing | Pytest + pytest-cov |
+| Coverage Reporting | Codecov |
+| CI/CD | GitHub Actions |
+| Containerisation | Docker |
+| Cloud Infrastructure | AWS EC2 |
+| Version Control | Git |
+
+---
+
+## 14. Final Decision Summary
 
 ```
 ══════════════════════════════════════════════════════════════
@@ -248,27 +272,3 @@ PRODUCTION RECOMMENDATIONS:
 • Log all future experiments to MLflow for centralised audit trail
 ══════════════════════════════════════════════════════════════
 ```
-
----
-
-## 14. Infrastructure & Tools
-
-| Category | Tool |
-|---|---|
-| Language | Python 3.10 |
-| Statistical Testing | SciPy (proportions_ztest, chisquare), Statsmodels (NormalIndPower, multipletests) |
-| Bayesian Analysis | SciPy Beta distribution (Monte Carlo sampling, 100K samples) |
-| API Framework | FastAPI + Uvicorn |
-| Frontend | Streamlit |
-| Experiment Tracking | MLflow |
-| Data Processing | Pandas, NumPy |
-| Visualisation | Matplotlib, Seaborn |
-| SQL Engine | Google BigQuery |
-| Testing | Pytest + pytest-cov |
-| Coverage Reporting | Codecov |
-| CI/CD | GitHub Actions |
-| Containerisation | Docker |
-| Cloud Infrastructure | AWS EC2 |
-| Version Control | Git |
-
----
