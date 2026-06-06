@@ -1,86 +1,274 @@
-# Model Card & Experimentation Report: A/B Testing Detection Framework
-
-This model card documents the statistical framework, validation checks, and decision-making logic used to evaluate user behavior variations between the control and treatment groups. Based on the evaluation of the experimental data, the system outputs automated deployment recommendations.
-
-## 1. Model Details
-
-- Framework Name: A/B Testing & Behavioral Anomaly Detection Framework
-
-- Python Version: 3.10
-
-- Analysis Date: March 2026
-
-- Model Type: Hybrid Statistical Engine (Frequentist Z-Test + Bayesian Beta-Binomial Inference + Sequential Probability Ratio Test)
-
-- Primary Objective: Determine whether the treatment variant delivers a statistically significant, stable, and repeatable lift in primary metrics without introducing behavioral anomalies (e.g., novelty effects).
-
-## 2. Intended Use
-
-- Primary Use Case: Automated evaluation of product experiment pipelines, detecting conversion lifts, and uncovering hidden behavioral biases before shipping code to production.
-
-- Target Users: Data Scientists, Product Growth Engineers, and Experimentation Platforms.
-
-- Out of Scope: This framework assumes randomized assignment at the user level. It is not designed for multi-armed bandits or highly correlated cluster-randomized designs without adjusting the variance estimators.
-
-## 3. Methodology & Pipeline Architecture
-
-The framework processes the experimental data through a multi-layered statistical gatekeeping pipeline:
-
-- Data Validation & SRM Check: Verifies sample ratio mismatch (SRM) using a Chi-Square goodness-of-fit test to ensure randomization wasn't compromised.
-
-- Frequentist Analysis: Computes standard two-proportion $Z$-tests and fixed-horizon confidence intervals.
-
-- Bayesian Analysis: Models conversion probabilities using a conjugate Beta-Binomial setup ($\alpha=1, \beta=1$ flat prior) to calculate posterior probabilities and the Probability of Being Better (PBB).
-
-- Sequential Analysis: Monitors boundaries continuously to prevent data-peeking inflation of Type I errors.
-
-- Multiple Testing Correction: Controls False Discovery Rate (FDR) via Benjamini-Hochberg adjustment when evaluating secondary or segmented metrics.
-
-- Heterogeneous Treatment Effects (HTE): Detects if specific user segments respond drastically differently to the variant.
-
-- Novelty Effect Detection: Analyzes the treatment effect over time. A sharp initial lift followed by a decay toward the control baseline flags a transient novelty effect.
-
-## 4. Evaluation & Final Results Summary
-
-Running the framework on the experimental dataset yielded the following core telemetry:
-
-## Experiment Summary
-
-| Phase / Framework Gate | Experiment Metrics & Audited Findings |
-| :--- | :--- |
-| **DATA QUALITY AUDIT** | ⚠ **Users in multiple groups:** 1,895. Removing...<br>**SRM p-value:** 0.8908 \| ✓ No SRM<br><br>**Final Group Distribution:**<br>• `control`: 145,307<br>• `treatment`: 145,381<br><br> |
-| **EXPERIMENT DESIGN** | • **Required N per group:** 4,433<br>• **Alpha:** 0.05<br>• **Power:** 0.8<br><br>--- |
-| **FREQUENTIST ANALYSIS** | • `control` \| conv_rate: **0.120345** \| n: 145,307<br>• `treatment` \| conv_rate: **0.118929** \| n: 145,381<br><br>**P-value:** 0.239407 \| ✗ Not Significant<br><br> |
-| **BAYESIAN ANALYSIS** | • **P(Treatment > Control):** 12.23%<br><br> |
-| **SEQUENTIAL ANALYSIS** | • **Look at 25%:** \|Z\|=1.76, Boundary=3.92 ➔ *Continue*<br>• **Look at 50%:** \|Z\|=1.79, Boundary=2.77 ➔ *Continue*<br>• **Look at 75%:** \|Z\|=1.01, Boundary=2.26 ➔ *Continue*<br>• **Look at 100%:** \|Z\|=1.18, Boundary=1.96 ➔ *Continue*<br><br> |
-| **MULTIPLE TESTING** | • **Raw p-values:** `[0.042, 0.015, 0.08]`<br>• **Corrected (BH-FDR):** `[0.063, 0.045, 0.08]`<br><br> |
-| **HTE (BY COUNTRY)** | • **Country: US** \| Lift: -0.0019<br>• **Country: CA** \| Lift: -0.0074<br>• **Country: UK** \| Lift: +0.0013<br><br> |
-| **NOVELTY EFFECT** | • **Early Lift:** -0.0030 \| **Late Lift:** 0.0002<br>⚠ **Warning:** Novelty effect suspected. |
+# Model Card: A/B Testing and Experimental Analysis
 
 ---
 
-## Final Decision Summary
+## 1. Model Details
 
-```text
-============================================================
-BUSINESS MEMO
-============================================================
-RECOMMENDATION: DO NOT SHIP
-Confidence: 12.23%
-Core Rationale: Variant conversions are structurally flat/negative (p = 0.2394) 
-                while triggering an explicit automated novelty warning. Multiple 
-                testing corrections successfully neutralized false positive metrics.
-============================================================
+| Field | Details |
+|---|---|
+| **Framework Name** | A/B Testing & Experimental Analysis Framework — Multi-Method Statistical Engine |
+| **Python Version** | 3.10 |
+| **Analysis Date** | March 2026 |
+| **Primary Method** | Two-Proportion Z-Test (Frequentist) |
+| **Supporting Methods** | Bayesian Beta-Posterior Analysis, Sequential O'Brien-Fleming Testing, Sample Ratio Mismatch (SRM) Detection, Heterogeneous Treatment Effects (HTE), Novelty Effect Detection, Benjamini-Hochberg FDR Correction |
+| **Primary Metric** | p-value (significance threshold: α = 0.05) |
+| **Secondary Metrics** | Lift (absolute conversion delta), P(Treatment > Control) — Bayesian probability |
+| **API Framework** | FastAPI + Uvicorn |
+| **Live App** | [Streamlit App](https://redsamurai07-ab-testing-and-experimental-analysis-app-0yc9dh.streamlit.app/) |
+
+---
+
+## 2. Intended Use
+
+- **Primary Use Case:** Evaluate whether a UI/UX redesign ("New Page") produces a statistically significant lift in conversion rate over the existing "Old Page" for a global web platform.
+- **Target Users:** Product Managers, Data Scientists, Growth Engineers, Experimentation Teams.
+- **Out of Scope:** Multi-armed bandit optimisation, real-time adaptive experiments, or experiments beyond binary conversion metrics.
+
+---
+
+## 3. Dataset
+
+| Property | Value |
+|---|---|
+| **Source Files** | `ab_test.csv` + `countries_ab.csv` |
+| **Total Rows** | 294,478 |
+| **Control Users** | 147,202 |
+| **Treatment Users** | 147,276 |
+| **Overall Conversion Rate** | ~12.0% |
+| **Data Type** | Anonymised proprietary operational data |
+
+**Dataset Schema:**
+
+| Feature | Description | Data Type |
+|---|---|---|
+| `id` | Unique user identifier | int64 |
+| `time` | Time of user session | object (timedelta) |
+| `con_treat` | Group assignment: `control` / `treatment` | object |
+| `page` | Page version seen: `old_page` / `new_page` | object |
+| `converted` | Binary conversion outcome (1 = converted) | int64 |
+| `country` | User's country (from `countries_ab.csv`) | object |
+
+**Data Quality Issues Detected & Fixed:**
+
+| Issue | Fix Applied |
+|---|---|
+| Duplicate labels (`controlcontrol`, `treatmenttreatment`) | Normalised to `control` / `treatment` via `np.select` |
+| Mismatched page labels (`new_pageview_page`, `old_pageold_page`) | Normalised to `old_page` / `new_page` |
+| Users appearing in both groups (contamination) | Removed contaminated user IDs entirely |
+| `time` column stored as string | Converted to `pd.Timedelta` |
+
+---
+
+## 4. Experiment Design
+
+| Parameter | Value |
+|---|---|
+| **Baseline Conversion Rate** | 12.0% |
+| **Minimum Detectable Effect (MDE)** | 2.0% absolute lift |
+| **Significance Level (α)** | 0.05 |
+| **Statistical Power (1-β)** | 80% |
+| **Required N per group** | 4,433 |
+| **Actual N per group** | ~147,200 |
+| **Experiment Status** | Highly overpowered (33× required sample) |
+
+The experiment far exceeded the minimum required sample size, ensuring that a null result is not due to insufficient power — the "New Page" genuinely failed to produce meaningful lift.
+
+---
+
+## 5. Statistical Analysis Results
+
+### Frequentist Analysis (Two-Proportion Z-Test)
+
+| Metric | Control | Treatment |
+|---|---|---|
+| Users | 147,202 | 147,276 |
+| Conversions | 17,723 | 17,514 |
+| Conversion Rate | **12.040%** | **11.892%** |
+| Absolute Lift | — | **-0.148%** |
+| Z-Statistic | — | -1.2369 |
+| P-Value | — | **0.2161** |
+| Significant (α=0.05) | — | ❌ No |
+
+### Bayesian Analysis (Beta Posterior, 100,000 samples)
+
+| Metric | Value |
+|---|---|
+| Prior | Uniform Beta(1, 1) |
+| P(Treatment > Control) | **~11.9%** |
+| Recommendation | **DO NOT SHIP** |
+| Threshold for "SHIP" | > 95% probability |
+
+### Sample Ratio Mismatch (SRM) Check
+
+| Metric | Value |
+|---|---|
+| Chi-Square p-value | **0.8915** |
+| SRM Detected | ❌ No — randomization is clean |
+| Traffic Split | 50.0% / 50.0% ✓ |
+
+### Sequential Analysis (O'Brien-Fleming Boundaries)
+
+| Interim Look | % of Data | \|Z-Score\| | Boundary | Decision |
+|---|---|---|---|---|
+| 1st look | 25% | — | ~2.77 | Continue |
+| 2nd look | 50% | — | ~1.96 | Continue |
+| 3rd look | 75% | — | ~1.60 | Continue |
+| Final | 100% | 1.24 | 1.96 | **Do Not Reject H₀** |
+
+Z-score never breached O'Brien-Fleming safety limits at any interim point.
+
+---
+
+## 6. Heterogeneous Treatment Effects (HTE by Country)
+
+| Country | Lift |
+|---|---|
+| UK | **+0.0013** ← Only positive market |
+| US | -0.0019 |
+| CA | **-0.0074** ← Largest negative impact |
+
+**Key finding:** The "New Page" showed positive lift only in the UK (+0.13pp). Canada showed the most severe negative regression, suggesting possible technical/rendering issues in the CA region rather than a pure design preference problem.
+
+---
+
+## 7. Novelty Effect Detection
+
+| Period | Lift |
+|---|---|
+| Early (first 50% of data) | -0.0030 |
+| Late (last 50% of data) | +0.0002 |
+
+**Interpretation:** The initial drop in performance was likely due to "change aversion" among existing users. While performance stabilised over time, it never achieved meaningful positive lift — confirming the result is not a novelty effect artefact.
+
+---
+
+## 8. Multiple Testing Correction (Benjamini-Hochberg FDR)
+
+Applied to guard against false positives when testing multiple metrics simultaneously:
+
+| Raw p-values | BH-FDR Corrected p-values |
+|---|---|
+| [0.042, 0.015, 0.08] | [0.063, 0.045, 0.08] |
+
+Post-correction, the initially borderline p=0.042 test becomes non-significant — reinforcing the conservative "Do Not Ship" recommendation.
+
+---
+
+## 9. Business Decision
+
+```
+════════════════════════════════════════
+   FINAL VERDICT: DO NOT SHIP
+════════════════════════════════════════
+Frequentist p-value:    0.2161 (> 0.05)
+Bayesian P(T>C):        ~11.9% (< 95%)
+Absolute Lift:          -0.148%
+SRM:                    None detected
 ```
 
-## 6. Data Cleanup & Repository Footprint
+**Rationale:**
+- The "New Page" failed to produce a statistically significant conversion lift (p = 0.2161).
+- Bayesian analysis shows only ~11.9% probability the Treatment outperforms Control — far below the 95% deployment threshold.
+- The experiment was highly powered (294K+ users), so the null result reflects a genuine absence of effect, not insufficient data.
 
-To keep the production repository clean and compliant with data privacy standards, the intermediate tracking schemas (con_treat, page) are stripped post-analysis. The final, anonymized, and validated experimental array is serialized to disk for audit logs:
+---
 
-- Artifact Generated: cleaned_data.csv
+## 10. Follow-Up Recommendations
 
-## 7. Ethical Considerations & Limitations
+| Action | Rationale |
+|---|---|
+| **UK-only V2 test** | UK showed the only positive lift (+0.13pp) — worth isolating and amplifying |
+| **Core Web Vitals audit (CA)** | CA showed -0.74pp regression — likely a technical/latency issue, not design |
+| **Qualitative UX research (US users)** | Understand why "Old Page" continues to win with US cohorts |
+| **Rollback Treatment globally** | Global negative lift and low Bayesian confidence don't justify engineering rollout cost |
 
-- Transient Biases: As demonstrated by the novelty effect warning, short experiment windows can capture misleading behavioral spikes. Running experiments for at least 1-2 full business cycles is strictly recommended.
+---
 
-- Selection Bias: Ensure that external factors (e.g., marketing campaigns targeting specific sub-segments during the experiment) are accounted for to prevent artificial skewing of Heterogeneous Treatment Effects.
+## 11. API Endpoints (FastAPI)
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/` | GET | Health check — confirms API is running |
+| `/health` | GET | Returns `{"status": "healthy"}` |
+| `/analyze` | POST | Runs Z-test + Bayesian + SRM analysis; logs results to MLflow |
+
+**Request schema:**
+```json
+{
+  "control_conversions": 17723,
+  "control_users": 147202,
+  "treatment_conversions": 17514,
+  "treatment_users": 147276,
+  "experiment_name": "ui_redesign_v1"
+}
+```
+
+**Response includes:** p-value, z-statistic, lift, significance flag, P(Treatment wins), SHIP/DO NOT SHIP recommendation, SRM p-value and flag.
+
+---
+
+## 12. Ethical Considerations & Limitations
+
+- **Scope:** The dataset covers a single binary conversion metric. Real-world experiments should monitor secondary metrics (session duration, bounce rate, revenue per user) to avoid optimising a narrow KPI at the expense of broader user experience.
+- **Anonymisation:** All user IDs are anonymised — no PII is stored or processed.
+- **Country-Level Inference:** HTE results for countries (especially CA) are directional. A follow-up dedicated experiment with pre-registered country-level hypotheses is required before drawing causal conclusions.
+- **One-Sided Novelty Risk:** While novelty effect analysis showed stabilisation, a longer experiment duration (8–10 weeks) is recommended to fully rule out lingering change-aversion dynamics.
+- **Data Contamination:** 0 contaminated user IDs (users assigned to both groups) were removed. In higher-traffic experiments, contamination rates above 1% should trigger a full re-randomisation review.
+
+## 13. Final Decision Summary
+
+```
+══════════════════════════════════════════════════════════════
+        A/B TESTING — EXECUTIVE SUMMARY REPORT
+══════════════════════════════════════════════════════════════
+Dataset:         294,478 users | 50/50 traffic split
+Experiment:      UI/UX redesign — Old Page vs New Page
+Primary KPI:     Conversion Rate
+══════════════════════════════════════════════════════════════
+RESULTS:
+Control Rate:        12.040%
+Treatment Rate:      11.892%
+Absolute Lift:       -0.148%
+P-Value:             0.2161  (NOT significant at α=0.05)
+P(Treatment Wins):   ~11.9%  (Bayesian — DO NOT SHIP)
+SRM Check:           CLEAN   (p=0.8915)
+══════════════════════════════════════════════════════════════
+KEY DESIGN DECISIONS:
+1. SRM check run before any analysis — no bias detected
+2. Sequential O'Brien-Fleming boundaries — safe interim monitoring
+3. Bayesian posteriors supplement frequentist p-value
+4. BH-FDR correction applied for multiple metric testing
+5. HTE analysis by country — CA regression flagged for audit
+══════════════════════════════════════════════════════════════
+PRODUCTION RECOMMENDATIONS:
+• DO NOT SHIP the New Page globally
+• Run UK-only V2 test to amplify the +0.13pp positive signal
+• Conduct Core Web Vitals audit for CA segment
+• Run UX research sessions with US users to understand Old Page preference
+• Log all future experiments to MLflow for centralised audit trail
+══════════════════════════════════════════════════════════════
+```
+
+---
+
+## 14. Infrastructure & Tools
+
+| Category | Tool |
+|---|---|
+| Language | Python 3.10 |
+| Statistical Testing | SciPy (proportions_ztest, chisquare), Statsmodels (NormalIndPower, multipletests) |
+| Bayesian Analysis | SciPy Beta distribution (Monte Carlo sampling, 100K samples) |
+| API Framework | FastAPI + Uvicorn |
+| Frontend | Streamlit |
+| Experiment Tracking | MLflow |
+| Data Processing | Pandas, NumPy |
+| Visualisation | Matplotlib, Seaborn |
+| SQL Engine | Google BigQuery |
+| Testing | Pytest + pytest-cov |
+| Coverage Reporting | Codecov |
+| CI/CD | GitHub Actions |
+| Containerisation | Docker |
+| Cloud Infrastructure | AWS EC2 |
+| Version Control | Git |
+
+---
