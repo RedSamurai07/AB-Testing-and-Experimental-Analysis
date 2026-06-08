@@ -1,6 +1,6 @@
 # AB Testing and Experimental Analysis
 
-![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)
+[![Analysis Service CI](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions/workflows/main.yml/badge.svg)](https://github.com/RedSamurai07/AB-Testing-and-Experimental-Analysis/actions)
 
 [![codecov](https://codecov.io/gh/RedSamurai07/AB-Testing-and-Experimental-Analysis/branch/main/graph/badge.svg)](https://codecov.io/gh/RedSamurai07/AB-Testing-and-Experimental-Analysis)
 
