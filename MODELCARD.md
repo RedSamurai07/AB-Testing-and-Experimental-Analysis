@@ -59,7 +59,88 @@
 
 ---
 
-## 4. Experiment Design
+## 4. Methodology & Pipeline Architecture
+ 
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        1. DATA LAYER                                │
+│  ab_test.csv  +  countries_ab.csv                                   │
+│         │                                                           │
+│         ▼  pd.merge(on='id')                                        │
+│  Unified DataFrame (290,000+ user-level records)                    │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│                   2. DATA QUALITY AUDIT                             │
+│  ├── Label normalisation (np.select) — clean group & page labels    │
+│  ├── Cross-contamination removal (users in both groups)             │
+│  ├── Datetime type correction (time → timedelta)                    │
+│  └── SRM Chi-square check (p=0.8908 ✓ No mismatch)                 │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│                  3. EXPERIMENT DESIGN                               │
+│  ├── Power analysis (arcsine effect size, NormalIndPower)           │
+│  ├── MDE = 2%, α = 0.05, power = 80%                               │
+│  └── Min sample = 4,433/group | Actual = 145,000+/group            │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│               4. STATISTICAL TESTING ENGINE                         │
+│                                                                     │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌────────────────────┐  │
+│  │   FREQUENTIST    │ │    BAYESIAN      │ │     SEQUENTIAL     │  │
+│  │ Two-Proportion   │ │  Beta-Binomial   │ │  O'Brien-Fleming   │  │
+│  │    Z-Test        │ │  Monte Carlo     │ │   Boundaries       │  │
+│  │  p = 0.2394 ✗    │ │  P(T>C) = 11.9% │ │  Z never breached  │  │
+│  └──────────────────┘ └──────────────────┘ └────────────────────┘  │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│                5. SUBGROUP / GEOGRAPHIC ANALYSIS                    │
+│  ├── Per-country Z-tests (US, UK, CA, ...)                          │
+│  └── Benjamini-Hochberg FDR correction (multipletests)             │
+│      → No country reaches significance after correction             │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│               6. REPORTING & SERVING                                │
+│  ├── Streamlit interactive dashboard (app.py)                       │
+│  │     Real-time metric input, live test result display             │
+│  └── FastAPI backend (app/ directory)                               │
+│        REST endpoint for programmatic experiment queries            │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│                  7. CONTAINERISATION & CI/CD                        │
+│  ├── Docker                                                         │
+│  │   python:3.10-slim base image                                    │
+│  │   Installs: scipy, statsmodels, pandas, numpy, streamlit, pytest │
+│  │   Entrypoint: Streamlit app on port 8501                         │
+│  │                                                                  │
+│  ├── GitHub Actions CI Pipeline (.github/workflows/main.yml)        │
+│  │   Trigger: every push to main                                    │
+│  │   Steps: checkout → install deps → run pytest (tests/ dir)      │
+│  │   Badge: [![Analysis Service CI] passing]                        │
+│  │                                                                  │
+│  └── PyTest (tests/ directory)                                      │
+│      Unit tests for: data loading, SRM check, Z-test engine,       │
+│      Bayesian sampler, sequential boundary computation              │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────┐
+│                     8. CLOUD DEPLOYMENT                             │
+│  ├── AWS EC2 (Ubuntu 22.04 LTS) — FastAPI backend                   │
+│  │   Ports: 5000 (FastAPI), 8501 (Streamlit)                       │
+│  │   docker run --restart unless-stopped                           │
+│  └── Streamlit Cloud — Live public dashboard                        │
+│      https://redsamurai07-ab-testing-and-experimental-analysis...   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+ 
+---
+
+## 5. Experiment Design
 
 | Parameter | Value |
 |---|---|
@@ -75,7 +156,7 @@ The experiment far exceeded the minimum required sample size, ensuring that a nu
 
 ---
 
-## 5. Statistical Analysis Results
+## 6. Statistical Analysis Results
 
 ### Frequentist Analysis (Two-Proportion Z-Test)
 
@@ -119,7 +200,7 @@ Z-score never breached O'Brien-Fleming safety limits at any interim point.
 
 ---
 
-## 6. Heterogeneous Treatment Effects (HTE by Country)
+## 7. Heterogeneous Treatment Effects (HTE by Country)
 
 | Country | Lift |
 |---|---|
@@ -131,7 +212,7 @@ Z-score never breached O'Brien-Fleming safety limits at any interim point.
 
 ---
 
-## 7. Novelty Effect Detection
+## 8. Novelty Effect Detection
 
 | Period | Lift |
 |---|---|
@@ -142,7 +223,7 @@ Z-score never breached O'Brien-Fleming safety limits at any interim point.
 
 ---
 
-## 8. Multiple Testing Correction (Benjamini-Hochberg FDR)
+## 9. Multiple Testing Correction (Benjamini-Hochberg FDR)
 
 Applied to guard against false positives when testing multiple metrics simultaneously:
 
@@ -154,7 +235,7 @@ Post-correction, the initially borderline p=0.042 test becomes non-significant �
 
 ---
 
-## 9. Business Decision
+## 10. Business Decision
 
 ```
 ════════════════════════════════════════
@@ -173,7 +254,7 @@ SRM:                    None detected
 
 ---
 
-## 10. Follow-Up Recommendations
+## 11. Follow-Up Recommendations
 
 | Action | Rationale |
 |---|---|
@@ -184,7 +265,7 @@ SRM:                    None detected
 
 ---
 
-## 11. API Endpoints (FastAPI)
+## 12. API Endpoints (FastAPI)
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -207,7 +288,7 @@ SRM:                    None detected
 
 ---
 
-## 12. Ethical Considerations & Limitations
+## 13. Ethical Considerations & Limitations
 
 - **Scope:** The dataset covers a single binary conversion metric. Real-world experiments should monitor secondary metrics (session duration, bounce rate, revenue per user) to avoid optimising a narrow KPI at the expense of broader user experience.
 - **Anonymisation:** All user IDs are anonymised — no PII is stored or processed.
@@ -217,7 +298,7 @@ SRM:                    None detected
 
 ---
 
-## 13. Infrastructure & Tools
+## 14. Infrastructure & Tools
 
 | Category | Tool |
 |---|---|
@@ -239,7 +320,7 @@ SRM:                    None detected
 
 ---
 
-## 14. Final Decision Summary
+## 15. Final Decision Summary
 
 ```
 ══════════════════════════════════════════════════════════════
