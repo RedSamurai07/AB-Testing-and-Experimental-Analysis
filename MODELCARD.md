@@ -73,8 +73,8 @@
 │                   2. DATA QUALITY AUDIT                             │
 │  ├── Label normalisation (np.select) — clean group & page labels    │
 │  ├── Cross-contamination removal (users in both groups)             │
-│  ├── Datetime type correction (time → timedelta)                    │ 
-│  └── SRM Chi-square check (p=0.8908 ✓ No mismatch)                  |  
+│  ├── Datetime type correction (time → timedelta)                    │
+│  └── SRM Chi-square check (p=0.8908  No mismatch)                   │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────────┐
@@ -91,7 +91,7 @@
 │  │   FREQUENTIST    │ │    BAYESIAN      │ │     SEQUENTIAL     │   │
 │  │ Two-Proportion   │ │  Beta-Binomial   │ │  O'Brien-Fleming   │   │
 │  │    Z-Test        │ │  Monte Carlo     │ │   Boundaries       │   │
-│  │  p = 0.2394 x    │ │  P(T>C) = 11.9%  │ │ Z never breached   │   │
+│  │  p = 0.2394      │ │  P(T>C) = 11.9%  │ │  Z never breached  │   │
 │  └──────────────────┘ └──────────────────┘ └────────────────────┘   │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
