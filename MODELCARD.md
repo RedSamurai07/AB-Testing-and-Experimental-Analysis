@@ -75,7 +75,7 @@
 │  ├── Label normalisation (np.select) — clean group & page labels    │
 │  ├── Cross-contamination removal (users in both groups)             │
 │  ├── Datetime type correction (time → timedelta)                    │
-│  └── SRM Chi-square check (p=0.8908 ✓ No mismatch)                 │
+│  └── SRM Chi-square check (p=0.8908 ✓ No mismatch)                  │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────────┐
@@ -88,18 +88,18 @@
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │               4. STATISTICAL TESTING ENGINE                         │
 │                                                                     │
-│  ┌──────────────────┐ ┌──────────────────┐ ┌────────────────────┐  │
-│  │   FREQUENTIST    │ │    BAYESIAN      │ │     SEQUENTIAL     │  │
-│  │ Two-Proportion   │ │  Beta-Binomial   │ │  O'Brien-Fleming   │  │
-│  │    Z-Test        │ │  Monte Carlo     │ │   Boundaries       │  │
-│  │  p = 0.2394 ✗    │ │  P(T>C) = 11.9% │ │  Z never breached  │  │
-│  └──────────────────┘ └──────────────────┘ └────────────────────┘  │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌────────────────────┐   │
+│  │   FREQUENTIST    │ │    BAYESIAN      │ │     SEQUENTIAL     │   │
+│  │ Two-Proportion   │ │  Beta-Binomial   │ │  O'Brien-Fleming   │   │
+│  │    Z-Test        │ │  Monte Carlo     │ │   Boundaries       │   │
+│  │  p = 0.2394 ✗    │ │  P(T>C) = 11.9%  │ │  Z never breached  │   │
+│  └──────────────────┘ └──────────────────┘ └────────────────────┘   │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                5. SUBGROUP / GEOGRAPHIC ANALYSIS                    │
 │  ├── Per-country Z-tests (US, UK, CA, ...)                          │
-│  └── Benjamini-Hochberg FDR correction (multipletests)             │
+│  └── Benjamini-Hochberg FDR correction (multipletests)              │
 │      → No country reaches significance after correction             │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
@@ -120,19 +120,19 @@
 │  │                                                                  │
 │  ├── GitHub Actions CI Pipeline (.github/workflows/main.yml)        │
 │  │   Trigger: every push to main                                    │
-│  │   Steps: checkout → install deps → run pytest (tests/ dir)      │
+│  │   Steps: checkout → install deps → run pytest (tests/ dir)       │
 │  │   Badge: [![Analysis Service CI] passing]                        │
 │  │                                                                  │
 │  └── PyTest (tests/ directory)                                      │
-│      Unit tests for: data loading, SRM check, Z-test engine,       │
+│      Unit tests for: data loading, SRM check, Z-test engine,        │
 │      Bayesian sampler, sequential boundary computation              │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                     8. CLOUD DEPLOYMENT                             │
 │  ├── AWS EC2 (Ubuntu 22.04 LTS) — FastAPI backend                   │
-│  │   Ports: 5000 (FastAPI), 8501 (Streamlit)                       │
-│  │   docker run --restart unless-stopped                           │
+│  │   Ports: 5000 (FastAPI), 8501 (Streamlit)                        │
+│  │   docker run --restart unless-stopped                            │
 │  └── Streamlit Cloud — Live public dashboard                        │
 │      https://redsamurai07-ab-testing-and-experimental-analysis...   │
 └─────────────────────────────────────────────────────────────────────┘
