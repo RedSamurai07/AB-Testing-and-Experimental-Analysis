@@ -83,7 +83,8 @@ To demonstrate production readiness, this A/B testing framework is fully product
 - Risk Mitigation: Employed O'Brien-Fleming sequential boundaries to allow for early stopping if the treatment showed severe negative regression, protecting user experience during the experiment.
 
 ### Data structure and initial checks
-Dataset: Proprietary operational data (anonymized for privacy compliance).
+
+[Kaggle E-commerce A/B Testing dataset (Ahmed Mohamed Dawoud)](https://www.kaggle.com/datasets/ahmedmohameddawoud/ecommerce-ab-testing))
 
 ### Tools
 - Excel : Google Sheets - Check for data types, Table formatting.
